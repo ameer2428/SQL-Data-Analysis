@@ -1,0 +1,98 @@
+use hr_data;
+
+select * from Data_hr;
+
+select termdate
+from Data_hr
+order by termdate desc;
+
+update Data_hr
+set termdate = format(convert(datetime, left(termdate,19),120), 'yyyy-mm-dd');
+
+select termdate
+from Data_hr
+order by termdate desc;
+
+alter table data_hr
+add new_termdate date;
+
+update data_hr
+set new_termdate= case
+when termdate is not null and isdate(termdate)=1 then cast(termdate as datetime) else null end;
+
+alter table Data_hr
+add age nvarchar(50);
+
+update data_hr
+set age = datediff(year, birthdate, getdate());
+
+select *
+from Data_hr;
+
+select age
+from Data_hr;
+
+---1) What is the age distribution?
+--- age distibution
+
+select 
+min(age) as youngest,
+max(age) as eldest
+from Data_hr;
+
+--- age group by gender
+select age
+from Data_hr
+order by age;
+
+select age_group,
+count(*) as count
+from
+(select
+case 
+when age <=22 and age <= 30 then '22 to 30'
+when age <=31 and age <= 40 then '31 to 40'
+when age <= 41 and age <= 50 then '41 to 50'
+else '50+'
+end  as age_group
+from Data_hr
+where new_termdate is null
+) as subquery
+group by age_group
+order by age_group;
+
+--- age group by gender
+
+select age_group, gender,
+count(*) as count
+from
+(select
+case 
+when age <=22 and age <= 30 then '22 to 30'
+when age <=31 and age <= 40 then '31 to 40'
+when age <= 41 and age <= 50 then '41 to 50'
+else '50+'
+end  as age_group , gender
+from Data_hr
+where new_termdate is null
+) as subquery
+group by age_group , gender
+order by age_group , gender;
+
+--- what is the gender breakdown in the company
+
+select gender,
+count(gender) as count
+from Data_hr
+where new_termdate is null
+group by gender
+order by gender ASC;
+
+--- How does gender vary across departments and job titles?
+
+select department,jobtitle, gender,
+count(gender) as count
+from Data_hr
+where new_termdate is null
+group by department,jobtitle,gender
+order by department, jobtitle,gender ASC;
